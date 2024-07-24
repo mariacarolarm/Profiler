@@ -33,3 +33,27 @@ def test_show_disk_usage_no_files_empty_context(capsys):
     captured = capsys.readouterr().out
 
     assert "Total size: 0" in captured
+
+
+def test_show_disk_usage_with_unsorted_files(tmp_path, capsys):
+    file_a = tmp_path / "file_a.txt"
+    file_a.write_text("A" * 20)
+
+    file_b = tmp_path / "file_b.txt"
+    file_b.write_text("B" * 10)
+
+    file_c = tmp_path / "file_c.txt"
+    file_c.write_text("C" * 5)
+
+    context = {"all_files": [str(file_c), str(file_b), str(file_a)]}
+
+    show_disk_usage(context)
+
+    captured = capsys.readouterr().out
+
+    output_lines = captured.splitlines()
+
+    assert "file_a.txt" in output_lines[0] and "20 (57%)" in output_lines[0]
+    assert "file_b.txt" in output_lines[1] and "10 (28%)" in output_lines[1]
+    assert "file_c.txt" in output_lines[2] and "5 (14%)" in output_lines[2]
+    assert "Total size: 35" in output_lines[-1]
